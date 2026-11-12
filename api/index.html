@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>delivery-eta API</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --text:#1f2328; --muted:#667085; --line:#e4e4e0; --accent:#0b6e4f; --code:#f0f0ec; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16181b; --card:#1f2226; --text:#e8e8e6; --muted:#9aa0a6; --line:#33373c; --accent:#5fd0a5; --code:#2a2e33; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui, "Malgun Gothic", sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:40px 16px 64px; }
+  h1 { margin:0 0 4px; font-size:1.9rem; }
+  h2 { margin:0 0 12px; font-size:1.15rem; }
+  p.lead { margin:0 0 28px; color:var(--muted); }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:16px; }
+  code, pre { font-family:ui-monospace, Consolas, monospace; font-size:.9rem; background:var(--code); border-radius:6px; }
+  code { padding:2px 6px; }
+  pre { padding:12px; overflow-x:auto; margin:8px 0 0; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td { border-bottom:0; }
+  .method { font-weight:700; color:var(--accent); white-space:nowrap; }
+  a { color:var(--accent); }
+  form { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+  label { display:flex; flex-direction:column; font-size:.85rem; color:var(--muted); gap:4px; }
+  input { width:150px; padding:8px; font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:6px; }
+  button { padding:9px 18px; font:inherit; font-weight:600; color:#fff; background:#0b6e4f; border:0; border-radius:6px; cursor:pointer; }
+  #result { min-height:1.6em; margin:12px 0 0; font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>delivery-eta API</h1>
+  <p class="lead">가게에서 배달지까지의 거리와 밀려 있는 주문 수로 배달 예상 시간(분)을 알려 주는 API 입니다.</p>
+
+  <section>
+    <h2>엔드포인트</h2>
+    <table>
+      <tr><td class="method">GET</td><td><code>/</code></td><td>이 소개 페이지</td></tr>
+      <tr><td class="method">GET</td><td><code>/health</code></td><td>서비스 상태와 현재 예측 구현체 이름</td></tr>
+      <tr><td class="method">POST</td><td><code>/eta</code></td><td>배달 예상 시간 계산</td></tr>
+      <tr><td class="method">GET</td><td><a href="/docs"><code>/docs</code></a></td><td>Swagger UI (대화형 API 문서)</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>POST /eta</h2>
+    <table>
+      <tr><th>필드</th><th>타입</th><th>설명</th></tr>
+      <tr><td><code>distance_km</code></td><td>number ≥ 0</td><td>가게에서 배달지까지 거리(km)</td></tr>
+      <tr><td><code>pending_orders</code></td><td>integer ≥ 0</td><td>지금 밀려 있는 주문 수</td></tr>
+    </table>
+    <p>음수이거나 숫자가 아닌 값은 <code>422</code> 로 거부합니다.</p>
+    <strong>요청 예시</strong>
+    <pre>curl -X POST <span class="origin"></span>/eta \
+  -H "Content-Type: application/json" \
+  -d '{"distance_km": 2.0, "pending_orders": 3}'</pre>
+    <p style="margin-bottom:0"><strong>응답 예시</strong></p>
+    <pre>{"minutes": 22.0, "model": "rule"}</pre>
+  </section>
+
+  <section>
+    <h2>직접 해 보기</h2>
+    <form id="try">
+      <label>거리 (km)<input name="distance_km" type="number" min="0" step="any" value="2" required></label>
+      <label>대기 주문 수<input name="pending_orders" type="number" min="0" step="1" value="3" required></label>
+      <button type="submit">예상 시간 계산</button>
+    </form>
+    <p id="result" aria-live="polite"></p>
+  </section>
+</main>
+<script>
+  document.querySelectorAll(".origin").forEach(function (el) { el.textContent = location.origin; });
+  document.getElementById("try").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var out = document.getElementById("result");
+    var body = {
+      distance_km: Number(this.distance_km.value),
+      pending_orders: Number(this.pending_orders.value)
+    };
+    try {
+      var res = await fetch("/eta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      var data = await res.json();
+      out.textContent = res.ok
+        ? "예상 시간: " + data.minutes + "분 (모델: " + data.model + ")"
+        : "요청이 거부되었습니다 (" + res.status + ")";
+    } catch (err) {
+      out.textContent = "요청에 실패했습니다.";
+    }
+  });
+</script>
+</body>
+</html>

@@ -4,10 +4,12 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from pathlib import Path
 from pydantic import BaseModel, Field
 
 MODEL_IMPL = os.getenv("MODEL_IMPL", "rule")
+INDEX_HTML = (Path(__file__).parent / "index.html").read_text(encoding="utf-8")
 estimate_delivery_minutes = importlib.import_module(f"api.predictors.{MODEL_IMPL}").estimate_delivery_minutes
 
 class EtaRequest(BaseModel):
@@ -37,6 +39,11 @@ def _json_safe(value):
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """기본 422 응답과 같은 형식이되, 입력값에 NaN·inf 가 있어도 500 이 나지 않게 한다."""
     return JSONResponse(status_code=422, content={"detail": _json_safe(jsonable_encoder(exc.errors()))})
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def index() -> str:
+    """API 소개 페이지(HTML)를 돌려준다."""
+    return INDEX_HTML
 
 @app.get("/health")
 def health() -> dict[str, str]:

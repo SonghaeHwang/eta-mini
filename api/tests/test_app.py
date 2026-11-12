@@ -24,6 +24,32 @@ def post_raw(body: str, content_type: str | None = "application/json"):
     return client.post("/eta", content=body, headers=headers)
 
 
+# ---------- / (소개 페이지) ----------
+
+def test_index_returns_html_page():
+    """/ 는 200 과 UTF-8 HTML 문서를 돌려준다."""
+    res = client.get("/")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "text/html; charset=utf-8"
+    assert res.text.lstrip().lower().startswith("<!doctype html>")
+
+
+@pytest.mark.parametrize("text", ["delivery-eta", "/health", "/eta", "/docs", "distance_km", "pending_orders"])
+def test_index_introduces_api(text):
+    """소개 페이지는 서비스 이름, 각 엔드포인트, 요청 필드를 안내한다."""
+    assert text in client.get("/").text
+
+
+def test_index_post_method_not_allowed():
+    """/ 는 GET 전용이라 POST 는 405 를 돌려준다."""
+    assert client.post("/").status_code == 405
+
+
+def test_index_is_not_in_openapi_schema():
+    """소개 페이지는 JSON API 가 아니므로 OpenAPI 스키마에 넣지 않는다."""
+    assert "/" not in client.get("/openapi.json").json()["paths"]
+
+
 # ---------- /health ----------
 
 def test_health_returns_ok_and_model_name():
