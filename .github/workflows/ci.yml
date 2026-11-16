@@ -3,7 +3,7 @@ on:
   pull_request: # PR: 테스트만 (합치기 전에 확인)
   push:
     branches: [main] # main: 테스트만 (합친 결과 확인)
-    tags: ["v*"] # v1.0 같은 태그: 테스트 → 이미지 배포 
+    tags: ["v*"] # v1.0 같은 태그: 테스트 → 이미지 배포
 permissions:
   contents: read
   packages: write
@@ -42,3 +42,41 @@ jobs:
           tags: |
             ${{ env.IMAGE }}/eta-api:${{ github.ref_name }}
             ${{ env.IMAGE }}/eta-api:latest
+
+  deploy: # ── 서버 배포: Render 에 새 이미지로 다시 배포하라고 요청 ──
+    needs: image
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Render 배포 요청
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL 이 등록되지 않아 배포를 건너뛴다"
+            exit 0
+          fi
+          # 방금 올린 버전 태그의 이미지로 배포한다 (imgURL 은 URL 인코딩한 이미지 주소)
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/eta-api:${GITHUB_REF_NAME}"
+          IMG_URL=$(jq -rn --arg v "$IMAGE" '$v|@uri')
+          curl -fsS -X POST "${DEPLOY_HOOK}&imgURL=${IMG_URL}"
+
+  # ── MLOps 2단계: 재현 가능한 학습 + 모델 검증 게이트 + ONNX 변환 ──
+  train:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      # 학습 라이브러리(scikit-learn, torch, ONNX 변환 도구)는 pyproject.toml 의 train 그룹. 로컬과 같은 명령이다.
+      - run: mkdir -p artifacts # 커밋하지 않는 폴더라 새 checkout 에는 없다
+      - run: uv run --locked --group train python -m training.train_sklearn
+      - run: uv run --locked python -m training.validate_model sklearn # 실패하면 여기서 중단 → 배포 안 됨
+      - run: uv run --locked --group train python -m training.train_dl
+      - run: uv run --locked python -m training.validate_model dl
+      - uses: actions/upload-artifact@v7
+        with:
+          name: model-artifacts
+          path: artifacts/
