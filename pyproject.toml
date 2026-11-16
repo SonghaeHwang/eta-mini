@@ -17,6 +17,7 @@ dev = [
 ]
 train = [
     "onnx>=1.23.2",
+    "onnxruntime>=1.32.0",
     "onnxscript>=0.7.2",
     "skl2onnx>=1.20.0",
     "torch>=2.15.0",
