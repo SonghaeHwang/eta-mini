@@ -1,0 +1,20 @@
+[package]
+name = "delivery-eta-rust"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal"] }
+# arbitrary_precision: 숫자를 원문 그대로 받아 큰 정수·1e400 같은 값을 직접 판정한다.
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+regex = "1"
+# load-dynamic: ONNX Runtime 공유 라이브러리를 실행 중에 ORT_LIB 경로에서 읽는다.
+# 기본 기능(download-binaries 등)을 끄므로 ort 가 런타임을 내려받지 않는다.
+ort = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "load-dynamic"] }
+
+[profile.release]
+strip = true
+lto = "thin"
