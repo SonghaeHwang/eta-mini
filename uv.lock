@@ -66,7 +66,7 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.162.4"
+version = "0.163.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -77,9 +77,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/39/7435269dcabb3c1b4ce1b9b03b40dae919415c258e1caa27160c22f55b9a/fastapi-0.162.4.tar.gz", hash = "sha256:4abdb1ef367090678d8bc664631df432ae7a1bfe7709c37547d3606e667650e3", size = 529374, upload-time = "2026-11-10T17:51:17.96Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/62/19000d0f3699cacaeffe8a3c4cc7046d87aac3291163ffeb2ef08b82d859/fastapi-0.163.1.tar.gz", hash = "sha256:3d364b02a68b67292e833ff2dfed3b8dc3aeadf73e271c15316c6c166668792f", size = 544796, upload-time = "2026-11-15T09:51:31.271Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/6b/0537ac682ac728dbe91f75c16683a985d11812f9930f21a35b756d6df629/fastapi-0.162.4-py3-none-any.whl", hash = "sha256:f093bc306d3958278d30ffd14f3834ca3d9b144fbb898ab5c9b652cf6e75f869", size = 151685, upload-time = "2026-11-10T17:51:16.562Z" },
+    { url = "https://files.pythonhosted.org/packages/20/b6/2424da1e40825d3fc54539621811f34e21472499677c9490e4967270e38e/fastapi-0.163.1-py3-none-any.whl", hash = "sha256:68f2d8050f5c3583121c0d203046cc7def5c16a7d6c43a0e7707a8ea610fe2d3", size = 154541, upload-time = "2026-11-15T09:51:29.726Z" },
 ]
 
 [[package]]
@@ -312,9 +312,8 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
-    { name = "joblib" },
     { name = "numpy" },
-    { name = "scikit-learn" },
+    { name = "onnxruntime" },
     { name = "uvicorn" },
 ]
 
@@ -324,9 +323,10 @@ dev = [
     { name = "pytest" },
 ]
 train = [
+    { name = "joblib" },
     { name = "onnx" },
-    { name = "onnxruntime" },
     { name = "onnxscript" },
+    { name = "scikit-learn" },
     { name = "skl2onnx" },
     { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
@@ -334,10 +334,9 @@ train = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastapi", specifier = ">=0.162.4" },
-    { name = "joblib", specifier = ">=1.6.0" },
-    { name = "numpy", specifier = ">=2.5.5" },
-    { name = "scikit-learn", specifier = ">=1.9.1" },
+    { name = "fastapi", specifier = ">=0.162.5" },
+    { name = "numpy", specifier = ">=2.5.4" },
+    { name = "onnxruntime", specifier = ">=1.32.0" },
     { name = "uvicorn", specifier = ">=0.54.0" },
 ]
 
@@ -347,9 +346,10 @@ dev = [
     { name = "pytest", specifier = ">=9.2.0" },
 ]
 train = [
+    { name = "joblib", specifier = ">=1.6.0" },
     { name = "onnx", specifier = ">=1.23.2" },
-    { name = "onnxruntime", specifier = ">=1.32.0" },
     { name = "onnxscript", specifier = ">=0.7.2" },
+    { name = "scikit-learn", specifier = ">=1.9.1" },
     { name = "skl2onnx", specifier = ">=1.20.0" },
     { name = "torch", specifier = ">=2.15.0", index = "https://download.pytorch.org/whl/cpu" },
 ]
